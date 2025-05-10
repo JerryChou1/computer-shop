@@ -5,6 +5,27 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>電腦維修與IT支援｜QR LAB</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    function handleSubmit(e) {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      fetch("https://formspree.io/f/your-form-id", {
+        method: "POST",
+        body: data,
+        headers: {
+          'Accept': 'application/json'
+        }
+      }).then(response => {
+        if (response.ok) {
+          document.getElementById('form-success').classList.remove('hidden');
+          form.reset();
+        } else {
+          alert('送出失敗，請稍後再試。');
+        }
+      }).catch(() => alert('連線錯誤，請稍後再試。'));
+    }
+  </script>
 </head>
 <body class="bg-gray-50 text-gray-800">
   <!-- Hero Section -->
@@ -40,52 +61,40 @@
     </div>
   </section>
 
-  <!-- Product Highlights -->
-  <section class="bg-gray-100 py-16 px-6">
-    <div class="max-w-5xl mx-auto">
-      <h2 class="text-2xl font-bold text-center mb-8">熱門產品</h2>
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="bg-white shadow-md rounded-xl p-4">
-          <img src="https://via.placeholder.com/300x200" alt="Product 1" class="mb-4 rounded">
-          <h3 class="font-semibold">電競組合機 A01</h3>
-          <p class="text-sm text-gray-600">Intel i5 / RTX 3060 / 16GB RAM</p>
+  <!-- Inquiry Form Section -->
+  <section id="inquiry" class="bg-white py-16 px-6">
+    <div class="max-w-3xl mx-auto">
+      <h2 class="text-2xl font-bold text-center mb-8">預約維修 / 線上詢價</h2>
+      <form onsubmit="handleSubmit(event)" class="bg-gray-100 shadow-md rounded-xl p-6 space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700">姓名</label>
+          <input name="name" required type="text" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300" placeholder="王小明">
         </div>
-        <div class="bg-white shadow-md rounded-xl p-4">
-          <img src="https://via.placeholder.com/300x200" alt="Product 2" class="mb-4 rounded">
-          <h3 class="font-semibold">文書電腦 B02</h3>
-          <p class="text-sm text-gray-600">Ryzen 5 / 8GB / SSD 512GB</p>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">電話</label>
+          <input name="phone" required type="tel" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300" placeholder="0912-345-678">
         </div>
-        <div class="bg-white shadow-md rounded-xl p-4">
-          <img src="https://via.placeholder.com/300x200" alt="Product 3" class="mb-4 rounded">
-          <h3 class="font-semibold">27吋螢幕</h3>
-          <p class="text-sm text-gray-600">2K解析度 / IPS / HDMI</p>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">電子郵件</label>
+          <input name="email" required type="email" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300" placeholder="example@email.com">
         </div>
-      </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">服務類型</label>
+          <select name="service" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300">
+            <option>筆電維修</option>
+            <option>桌機升級</option>
+            <option>企業IT支援</option>
+            <option>其他</option>
+          </select>
+        </div>
+        <div>
+          <label class="block text-sm font-medium text-gray-700">問題描述 / 備註</label>
+          <textarea name="message" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300" rows="4" placeholder="請描述您遇到的問題或想詢問的項目..."></textarea>
+        </div>
+        <div class="text-center">
+          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-semibold">送出表單</button>
+        </div>
+        <p id="form-success" class="text-green-600 text-center font-semibold hidden">✅ 表單已成功送出，謝謝您的聯絡！</p>
+      </form>
     </div>
   </section>
-
-  <!-- Testimonials -->
-  <section class="py-16 px-6 max-w-5xl mx-auto">
-    <h2 class="text-2xl font-bold text-center mb-8">客戶評價</h2>
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <div class="bg-white p-6 shadow rounded-xl">
-        <p>「幫我公司修了一台開不了的筆電，當天就搞定，效率超高！」</p>
-        <p class="mt-2 font-semibold text-blue-700">— 王先生｜科技公司主管</p>
-      </div>
-      <div class="bg-white p-6 shadow rounded-xl">
-        <p>「配電腦前幫我解說清楚優缺點，真的很專業，值得推薦！」</p>
-        <p class="mt-2 font-semibold text-blue-700">— 張小姐｜設計師</p>
-      </div>
-    </div>
-  </section>
-
-  <!-- Contact Section -->
-  <section id="contact" class="bg-gray-900 text-white py-16 px-6">
-    <div class="max-w-4xl mx-auto text-center">
-      <h2 class="text-2xl font-bold mb-6">聯絡我們</h2>
-      <p>地址：彰化縣田尾鄉○○路123號｜電話：04-12345678</p>
-      <p class="mt-2">LINE ID: @qrlab ｜ Facebook：QR LAB 電腦專業</p>
-    </div>
-  </section>
-</body>
-</html>
