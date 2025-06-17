@@ -5,6 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>電腦維修與IT支援｜QR LAB</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
   <script>
     function handleSubmit(e) {
       e.preventDefault();
@@ -33,7 +38,7 @@
     <h1 class="text-4xl font-bold mb-4">專業電腦維修與 IT 支援</h1>
     <p class="text-lg mb-6">超過10年經驗，快速可靠的解決方案</p>
     <div class="flex justify-center gap-4">
-      <a href="#contact" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-xl text-white font-semibold">預約維修</a>
+      <a href="#inquiry" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-xl text-white font-semibold">預約維修</a>
       <a href="#inquiry" class="bg-white text-blue-700 hover:text-blue-900 border border-white px-6 py-3 rounded-xl font-semibold">線上詢價</a>
     </div>
   </section>
@@ -43,8 +48,8 @@
     <h2 class="text-2xl font-bold mb-8">我們的服務</h2>
     <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
       <div class="bg-white shadow-md p-6 rounded-xl">
-        <h3 class="text-lg font-semibold mb-2">🛠️ 電腦維修</h3>
-        <p>硬體更換、資料救援、系統重灌</p>
+        <h3 class="text-lg font-semibold mb-2">🔨 電腦維修</h3>
+        <p>硬體更換、資料救援、系統重編</p>
       </div>
       <div class="bg-white shadow-md p-6 rounded-xl">
         <h3 class="text-lg font-semibold mb-2">🧰 客製整機</h3>
@@ -52,7 +57,7 @@
       </div>
       <div class="bg-white shadow-md p-6 rounded-xl">
         <h3 class="text-lg font-semibold mb-2">🌐 網路支援</h3>
-        <p>企業內網建置與監控系統安裝</p>
+        <p>企業內網建立與監控系統安裝</p>
       </div>
       <div class="bg-white shadow-md p-6 rounded-xl">
         <h3 class="text-lg font-semibold mb-2">🛒 周邊銷售</h3>
@@ -81,7 +86,8 @@
         <div>
           <label class="block text-sm font-medium text-gray-700">服務類型</label>
           <select name="service" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300">
-            <option>筆電維修</option>
+            <option>電腦組裝服務</option>
+			<option>筆電維修</option>
             <option>桌機升級</option>
             <option>企業IT支援</option>
             <option>其他</option>
