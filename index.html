@@ -3,11 +3,533 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>電腦維修與IT支援｜QR LAB</title>
+  <title>QR LAB — 專業電腦維修與 IT 支援</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700;900&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.tailwindcss.com"></script>
   <style>
-    html {
-      scroll-behavior: smooth;
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --black: #0a0a0a;
+      --white: #f5f0eb;
+      --accent: #c9a96e;
+      --accent2: #3b82f6;
+      --gray: #8a8580;
+      --dark-gray: #1a1a1a;
+      --mid-gray: #2a2a2a;
+    }
+
+    html { scroll-behavior: smooth; overflow-x: hidden; }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--black);
+      color: var(--white);
+      overflow-x: hidden;
+    }
+
+    /* Custom Cursor */
+    .cursor {
+      width: 20px;
+      height: 20px;
+      border: 2px solid var(--accent);
+      border-radius: 50%;
+      position: fixed;
+      pointer-events: none;
+      z-index: 10000;
+      transition: transform 0.15s ease, opacity 0.15s ease;
+      mix-blend-mode: difference;
+    }
+    .cursor.hover { transform: scale(2.5); background: rgba(201,169,110,0.15); }
+
+    /* Loader */
+    .loader {
+      position: fixed;
+      inset: 0;
+      background: var(--black);
+      z-index: 9999;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-direction: column;
+      transition: opacity 0.8s ease, visibility 0.8s ease;
+    }
+    .loader.hidden { opacity: 0; visibility: hidden; }
+    .loader-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 3.5rem;
+      font-weight: 900;
+      letter-spacing: 0.3em;
+      color: var(--accent);
+      animation: loaderPulse 1.5s ease infinite;
+    }
+    .loader-bar {
+      width: 200px;
+      height: 2px;
+      background: var(--dark-gray);
+      margin-top: 2rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .loader-bar::after {
+      content: '';
+      position: absolute;
+      left: 0; top: 0;
+      height: 100%;
+      width: 0%;
+      background: var(--accent);
+      animation: loaderFill 2s ease forwards;
+    }
+    @keyframes loaderPulse { 0%,100% { opacity:1; } 50% { opacity:0.5; } }
+    @keyframes loaderFill { to { width:100%; } }
+
+    /* Nav */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+      padding: 1.5rem 3rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      transition: background 0.4s ease, padding 0.4s ease;
+    }
+    nav.scrolled {
+      background: rgba(10,10,10,0.95);
+      backdrop-filter: blur(20px);
+      padding: 1rem 3rem;
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .nav-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.8rem; font-weight: 900;
+      letter-spacing: 0.2em;
+      color: var(--accent);
+      text-decoration: none;
+    }
+    .nav-links { display: flex; gap: 2.5rem; list-style: none; }
+    .nav-links a {
+      color: var(--white); text-decoration: none;
+      font-size: 0.85rem; font-weight: 500;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      position: relative; padding-bottom: 4px;
+    }
+    .nav-links a::after {
+      content: ''; position: absolute; bottom: 0; left: 0;
+      width: 0; height: 1px; background: var(--accent);
+      transition: width 0.3s ease;
+    }
+    .nav-links a:hover::after { width: 100%; }
+
+    /* Hero */
+    .hero {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute; inset: 0;
+      background:
+        radial-gradient(ellipse at 20% 50%, rgba(59,130,246,0.08) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(201,169,110,0.05) 0%, transparent 50%),
+        radial-gradient(ellipse at 50% 80%, rgba(201,169,110,0.03) 0%, transparent 50%);
+      animation: heroBgShift 8s ease-in-out infinite alternate;
+    }
+    @keyframes heroBgShift {
+      0% { transform: scale(1) translate(0,0); }
+      100% { transform: scale(1.1) translate(20px,-10px); }
+    }
+    .hero-particles { position: absolute; inset: 0; overflow: hidden; }
+    .particle {
+      position: absolute;
+      width: 3px; height: 3px;
+      border-radius: 50%;
+      opacity: 0;
+      animation: particleFloat linear infinite;
+    }
+    @keyframes particleFloat {
+      0% { opacity:0; transform: translateY(100vh) scale(0); }
+      10% { opacity:0.6; }
+      90% { opacity:0.6; }
+      100% { opacity:0; transform: translateY(-10vh) scale(1); }
+    }
+    .hero-content { text-align: center; z-index: 2; max-width: 900px; padding: 0 2rem; }
+    .hero-label {
+      font-size: 0.8rem; letter-spacing: 0.5em; text-transform: uppercase;
+      color: var(--accent); margin-bottom: 1.5rem;
+      opacity: 0; animation: fadeUp 1s ease 2.2s forwards;
+    }
+    .hero-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2.5rem, 6vw, 5.5rem);
+      font-weight: 900; line-height: 1.1;
+      margin-bottom: 1.5rem;
+      opacity: 0; animation: fadeUp 1s ease 2.4s forwards;
+      transform: translateY(30px);
+    }
+    .hero-title em { font-style: italic; color: var(--accent); font-weight: 400; }
+    .hero-subtitle {
+      font-size: 1.1rem; font-weight: 300; color: var(--gray);
+      max-width: 550px; margin: 0 auto 2.5rem; line-height: 1.8;
+      opacity: 0; animation: fadeUp 1s ease 2.9s forwards;
+      transform: translateY(30px);
+    }
+    @keyframes fadeUp { to { opacity:1; transform:translateY(0); } }
+    .hero-cta {
+      display: flex; gap: 1.5rem; justify-content: center;
+      opacity: 0; animation: fadeUp 1s ease 3.1s forwards;
+      transform: translateY(30px);
+    }
+    .btn {
+      padding: 1rem 2.5rem;
+      font-size: 0.8rem; font-weight: 600;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      text-decoration: none; border: none; cursor: pointer;
+      transition: all 0.4s ease; position: relative; overflow: hidden;
+    }
+    .btn-primary { background: var(--accent); color: var(--black); }
+    .btn-primary:hover {
+      background: #d4b578;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(201,169,110,0.3);
+    }
+    .btn-blue { background: var(--accent2); color: white; }
+    .btn-blue:hover {
+      background: #60a5fa;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(59,130,246,0.3);
+    }
+    .btn-outline {
+      background: transparent; color: var(--white);
+      border: 1px solid rgba(245,240,235,0.3);
+    }
+    .btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+    .hero-scroll {
+      position: absolute; bottom: 2rem; left: 50%;
+      transform: translateX(-50%);
+      display: flex; flex-direction: column; align-items: center; gap: 0.5rem;
+      opacity: 0; animation: fadeUp 1s ease 3.5s forwards;
+      transform: translateX(-50%) translateY(30px);
+    }
+    .hero-scroll span {
+      font-size: 0.65rem; letter-spacing: 0.3em;
+      text-transform: uppercase; color: var(--gray);
+    }
+    .scroll-line {
+      width: 1px; height: 40px;
+      background: linear-gradient(to bottom, var(--accent), transparent);
+      animation: scrollBounce 2s ease infinite;
+    }
+    @keyframes scrollBounce {
+      0%,100% { transform:scaleY(1); opacity:1; }
+      50% { transform:scaleY(0.5); opacity:0.3; }
+    }
+
+    /* Marquee */
+    .marquee-section {
+      padding: 2rem 0;
+      border-top: 1px solid rgba(201,169,110,0.1);
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+      overflow: hidden;
+    }
+    .marquee { display: flex; animation: marquee 20s linear infinite; white-space: nowrap; }
+    .marquee-item {
+      font-size: 0.85rem; font-weight: 500;
+      letter-spacing: 0.15em; color: var(--gray);
+      padding: 0 3rem; display: flex; align-items: center; gap: 3rem;
+    }
+    .marquee-item::after { content: '✦'; color: var(--accent); font-size: 0.6rem; }
+    @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+
+    /* Section Styles */
+    .section { padding: 8rem 3rem; }
+    .section-header { text-align: center; margin-bottom: 5rem; }
+    .section-label {
+      font-size: 0.75rem; letter-spacing: 0.5em;
+      text-transform: uppercase; color: var(--accent); margin-bottom: 1rem;
+    }
+    .section-title {
+      font-family: 'Playfair Display', serif;
+      font-size: clamp(2rem, 4vw, 3.5rem);
+      font-weight: 700; line-height: 1.2;
+    }
+    .section-title em { font-style: italic; color: var(--accent); font-weight: 400; }
+
+    /* Services */
+    .services-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 2rem; max-width: 1400px; margin: 0 auto;
+    }
+    .service-card {
+      background: var(--dark-gray);
+      border: 1px solid rgba(201,169,110,0.08);
+      padding: 2.5rem 2rem;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      transition: all 0.5s ease;
+    }
+    .service-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0;
+      height: 2px;
+      background: linear-gradient(90deg, transparent, var(--accent), transparent);
+      transform: scaleX(0);
+      transition: transform 0.5s ease;
+    }
+    .service-card:hover::before { transform: scaleX(1); }
+    .service-card:hover {
+      transform: translateY(-8px);
+      border-color: rgba(201,169,110,0.2);
+      box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+    }
+    .service-icon {
+      font-size: 3rem;
+      margin-bottom: 1.5rem;
+      display: block;
+      transition: transform 0.5s ease;
+    }
+    .service-card:hover .service-icon { transform: scale(1.15) rotate(-5deg); }
+    .service-card h3 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem; font-weight: 700;
+      margin-bottom: 0.8rem;
+    }
+    .service-card p {
+      font-size: 0.9rem; color: var(--gray); line-height: 1.7;
+    }
+    .service-number {
+      position: absolute; top: 1rem; right: 1.5rem;
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem; font-weight: 900;
+      color: rgba(201,169,110,0.06);
+      line-height: 1;
+    }
+
+    /* Stats */
+    .stats-section {
+      padding: 6rem 3rem;
+      background: var(--dark-gray);
+      border-top: 1px solid rgba(201,169,110,0.1);
+      border-bottom: 1px solid rgba(201,169,110,0.1);
+    }
+    .stats-grid {
+      display: grid; grid-template-columns: repeat(4, 1fr);
+      gap: 2rem; max-width: 1200px; margin: 0 auto; text-align: center;
+    }
+    .stat-item { padding: 2rem; }
+    .stat-number {
+      font-family: 'Playfair Display', serif;
+      font-size: 3rem; font-weight: 700;
+      color: var(--accent); line-height: 1;
+      margin-bottom: 0.5rem;
+    }
+    .stat-label {
+      font-size: 0.75rem; letter-spacing: 0.2em;
+      text-transform: uppercase; color: var(--gray);
+    }
+
+    /* Features */
+    .features-section { padding: 8rem 3rem; }
+    .features-grid {
+      display: grid; grid-template-columns: 1fr 1fr;
+      gap: 5rem; max-width: 1200px; margin: 0 auto; align-items: center;
+    }
+    .features-visual {
+      background: var(--dark-gray);
+      border: 1px solid rgba(201,169,110,0.08);
+      aspect-ratio: 4/3;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 10rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .features-visual::before {
+      content: '';
+      position: absolute;
+      width: 300px; height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(59,130,246,0.1), transparent 70%);
+      animation: showcaseGlow 4s ease-in-out infinite alternate;
+    }
+    @keyframes showcaseGlow {
+      0% { transform: scale(0.8); opacity:0.5; }
+      100% { transform: scale(1.2); opacity:1; }
+    }
+    .features-list {
+      display: flex; flex-direction: column; gap: 1.5rem;
+      margin-top: 2rem;
+    }
+    .feature-item {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 1.2rem;
+      background: var(--dark-gray);
+      border-left: 2px solid var(--accent);
+      transition: all 0.3s ease;
+    }
+    .feature-item:hover {
+      transform: translateX(8px);
+      border-left-color: var(--accent2);
+    }
+    .feature-icon {
+      width: 36px; height: 36px;
+      border: 1px solid var(--accent);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      border-radius: 4px;
+    }
+    .feature-text h4 { font-size: 1rem; font-weight: 600; margin-bottom: 0.2rem; }
+    .feature-text p { font-size: 0.85rem; color: var(--gray); }
+
+    /* Form Section */
+    .form-section {
+      padding: 8rem 3rem;
+      background: var(--dark-gray);
+      position: relative;
+      overflow: hidden;
+    }
+    .form-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse at 30% 50%, rgba(59,130,246,0.04) 0%, transparent 50%),
+        radial-gradient(ellipse at 70% 50%, rgba(201,169,110,0.04) 0%, transparent 50%);
+    }
+    .form-container {
+      max-width: 700px; margin: 0 auto; position: relative; z-index: 1;
+    }
+    .form-card {
+      background: rgba(26,26,26,0.8);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(201,169,110,0.1);
+      padding: 3rem;
+    }
+    .form-group { margin-bottom: 1.5rem; }
+    .form-group label {
+      display: block; font-size: 0.75rem;
+      letter-spacing: 0.15em; text-transform: uppercase;
+      color: var(--gray); margin-bottom: 0.5rem; font-weight: 500;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 0.9rem 1.2rem;
+      background: rgba(10,10,10,0.6);
+      border: 1px solid rgba(245,240,235,0.1);
+      color: var(--white);
+      font-size: 0.9rem;
+      font-family: 'Inter', sans-serif;
+      outline: none;
+      transition: border-color 0.3s ease;
+    }
+    .form-group input::placeholder,
+    .form-group textarea::placeholder {
+      color: rgba(138,133,128,0.5);
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      border-color: var(--accent);
+    }
+    .form-group select { cursor: pointer; appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%238a8580' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; }
+    .form-group select option { background: var(--dark-gray); color: var(--white); }
+    .form-group textarea { resize: vertical; min-height: 120px; }
+    .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; }
+    .form-submit { text-align: center; margin-top: 2rem; }
+    .form-submit button {
+      padding: 1rem 3rem;
+      background: var(--accent);
+      color: var(--black);
+      border: none;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      cursor: pointer;
+      font-family: 'Inter', sans-serif;
+      transition: all 0.4s ease;
+      width: 100%;
+    }
+    .form-submit button:hover {
+      background: #d4b578;
+      transform: translateY(-2px);
+      box-shadow: 0 10px 40px rgba(201,169,110,0.3);
+    }
+    #form-success {
+      text-align: center;
+      margin-top: 1rem;
+      color: #10b981;
+      font-weight: 600;
+      font-size: 0.9rem;
+      display: none;
+    }
+    #form-success.show { display: block; animation: fadeUp 0.5s ease; }
+
+    /* Footer */
+    footer {
+      padding: 4rem 3rem 2rem;
+      border-top: 1px solid rgba(201,169,110,0.1);
+    }
+    .footer-grid {
+      display: grid; grid-template-columns: 2fr 1fr 1fr;
+      gap: 3rem; max-width: 1400px; margin: 0 auto 3rem;
+    }
+    .footer-brand {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem; font-weight: 900;
+      letter-spacing: 0.2em; color: var(--accent); margin-bottom: 1rem;
+    }
+    .footer-desc { font-size: 0.85rem; color: var(--gray); line-height: 1.7; max-width: 300px; }
+    .footer-col-title {
+      font-size: 0.75rem; font-weight: 700;
+      letter-spacing: 0.2em; text-transform: uppercase;
+      color: var(--white); margin-bottom: 1.5rem;
+    }
+    .footer-links { list-style: none; display: flex; flex-direction: column; gap: 0.8rem; }
+    .footer-links a { color: var(--gray); text-decoration: none; font-size: 0.85rem; transition: color 0.3s ease; }
+    .footer-links a:hover { color: var(--accent); }
+    .footer-bottom {
+      display: flex; justify-content: space-between; align-items: center;
+      padding-top: 2rem; border-top: 1px solid rgba(201,169,110,0.05);
+      max-width: 1400px; margin: 0 auto;
+    }
+    .footer-copy { font-size: 0.75rem; color: var(--gray); }
+    .footer-socials { display: flex; gap: 1.5rem; }
+    .footer-socials a { color: var(--gray); text-decoration: none; font-size: 0.8rem; transition: color 0.3s ease; }
+    .footer-socials a:hover { color: var(--accent); }
+
+    /* Reveal */
+    .reveal {
+      opacity: 0; transform: translateY(40px);
+      transition: opacity 0.8s ease, transform 0.8s ease;
+    }
+    .reveal.active { opacity: 1; transform: translateY(0); }
+
+    /* Responsive */
+    @media (max-width: 1024px) {
+      .services-grid { grid-template-columns: repeat(2, 1fr); }
+      .features-grid { grid-template-columns: 1fr; }
+      .features-visual { font-size: 7rem; }
+      .stats-grid { grid-template-columns: repeat(2, 1fr); }
+    }
+    @media (max-width: 768px) {
+      nav { padding: 1rem 1.5rem; }
+      .nav-links { display: none; }
+      .section { padding: 5rem 1.5rem; }
+      .services-grid { grid-template-columns: 1fr; max-width: 400px; }
+      .features-grid { gap: 3rem; }
+      .stats-grid { grid-template-columns: 1fr 1fr; }
+      .form-card { padding: 2rem 1.5rem; }
+      .form-row { grid-template-columns: 1fr; }
+      .footer-grid { grid-template-columns: 1fr; }
+      .hero-cta { flex-direction: column; align-items: center; }
     }
   </style>
   <script>
@@ -18,11 +540,10 @@
       fetch("https://formspree.io/f/mwpbqpkr", {
         method: "POST",
         body: data,
-        headers: {
-          'Accept': 'application/json'
-        }
+        headers: { 'Accept': 'application/json' }
       }).then(response => {
         if (response.ok) {
+          document.getElementById('form-success').classList.add('show');
           document.getElementById('form-success').classList.remove('hidden');
           form.reset();
         } else {
@@ -32,77 +553,322 @@
     }
   </script>
 </head>
-<body class="bg-gray-50 text-gray-800">
-  <!-- Hero Section -->
-  <section class="bg-gradient-to-r from-gray-900 to-gray-700 text-white py-20 px-6 text-center">
-    <h1 class="text-4xl font-bold mb-4">專業電腦維修與 IT 支援</h1>
-    <p class="text-lg mb-6">超過10年經驗，快速可靠的解決方案</p>
-    <div class="flex justify-center gap-4">
-      <a href="#inquiry" class="bg-blue-500 hover:bg-blue-600 px-6 py-3 rounded-xl text-white font-semibold">預約維修</a>
-      <a href="#inquiry" class="bg-white text-blue-700 hover:text-blue-900 border border-white px-6 py-3 rounded-xl font-semibold">線上詢價</a>
-    </div>
-  </section>
+<body>
 
-  <!-- Services Section -->
-  <section class="py-16 px-6 max-w-5xl mx-auto text-center">
-    <h2 class="text-2xl font-bold mb-8">我們的服務</h2>
-    <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
-      <div class="bg-white shadow-md p-6 rounded-xl">
-        <h3 class="text-lg font-semibold mb-2">🔨 電腦維修</h3>
-        <p>硬體更換、資料救援、系統重編</p>
-      </div>
-      <div class="bg-white shadow-md p-6 rounded-xl">
-        <h3 class="text-lg font-semibold mb-2">🧰 客製整機</h3>
-        <p>根據需求配件組裝，量身打造</p>
-      </div>
-      <div class="bg-white shadow-md p-6 rounded-xl">
-        <h3 class="text-lg font-semibold mb-2">🌐 網路支援</h3>
-        <p>企業內網建立與監控系統安裝</p>
-      </div>
-      <div class="bg-white shadow-md p-6 rounded-xl">
-        <h3 class="text-lg font-semibold mb-2">🛒 周邊銷售</h3>
-        <p>鍵盤滑鼠、記憶體、SSD 等原廠商品</p>
+<!-- Loader -->
+<div class="loader" id="loader">
+  <div class="loader-brand">QR LAB</div>
+  <div class="loader-bar"></div>
+</div>
+
+<!-- Custom Cursor -->
+<div class="cursor" id="cursor"></div>
+
+<!-- Navigation -->
+<nav id="navbar">
+  <a href="#" class="nav-brand">QR LAB</a>
+  <ul class="nav-links">
+    <li><a href="#services">服務項目</a></li>
+    <li><a href="#features">為什麼選我們</a></li>
+    <li><a href="#inquiry">預約維修</a></li>
+  </ul>
+  <a href="#inquiry" class="btn btn-primary" style="padding:0.7rem 1.5rem; font-size:0.75rem;">立即諮詢</a>
+</nav>
+
+<!-- Hero -->
+<section class="hero">
+  <div class="hero-bg"></div>
+  <div class="hero-particles" id="particles"></div>
+  <div class="hero-content">
+    <p class="hero-label">專業 · 可靠 · 高效</p>
+    <h1 class="hero-title">
+      你的 <em>IT 後盾</em><br>我們守護
+    </h1>
+    <p class="hero-subtitle">超過10年經驗，提供快速可靠的電腦維修與 IT 支援解決方案，讓你的事業無後顧之憂。</p>
+    <div class="hero-cta">
+      <a href="#inquiry" class="btn btn-primary">預約維修</a>
+      <a href="#services" class="btn btn-outline">了解服務</a>
+    </div>
+  </div>
+  <div class="hero-scroll">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</section>
+
+<!-- Marquee -->
+<div class="marquee-section">
+  <div class="marquee">
+    <div class="marquee-item">超過10年專業經驗</div>
+    <div class="marquee-item">快速響應</div>
+    <div class="marquee-item">原廠正品配件</div>
+    <div class="marquee-item">企業IT解決方案</div>
+    <div class="marquee-item">免費初檢</div>
+    <div class="marquee-item">超過10年專業經驗</div>
+    <div class="marquee-item">快速響應</div>
+    <div class="marquee-item">原廠正品配件</div>
+    <div class="marquee-item">企業IT解決方案</div>
+    <div class="marquee-item">免費初檢</div>
+  </div>
+</div>
+
+<!-- Services -->
+<section class="section" id="services">
+  <div class="section-header reveal">
+    <p class="section-label">我們能提供</p>
+    <h2 class="section-title">專業 <em>服務項目</em></h2>
+  </div>
+  <div class="services-grid">
+    <div class="service-card reveal">
+      <span class="service-number">01</span>
+      <span class="service-icon">🔨</span>
+      <h3>電腦維修</h3>
+      <p>硬體更換、資料救援、系統重編，快速修復你的設備問題。</p>
+    </div>
+    <div class="service-card reveal" style="transition-delay:0.1s;">
+      <span class="service-number">02</span>
+      <span class="service-icon">🧰</span>
+      <h3>客製整機</h3>
+      <p>根據你的需求選配最佳組件，量身打造適合你的電腦。</p>
+    </div>
+    <div class="service-card reveal" style="transition-delay:0.2s;">
+      <span class="service-number">03</span>
+      <span class="service-icon">🌐</span>
+      <h3>網路支援</h3>
+      <p>企業內網建立、監控系統安裝、伺服器維護，全方位網路解決方案。</p>
+    </div>
+    <div class="service-card reveal" style="transition-delay:0.3s;">
+      <span class="service-number">04</span>
+      <span class="service-icon">🛒</span>
+      <h3>周邊銷售</h3>
+      <p>鍵盤滑鼠、記憶體、SSD 等原廠商品，品質保證、價格透明。</p>
+    </div>
+  </div>
+</section>
+
+<!-- Stats -->
+<section class="stats-section">
+  <div class="stats-grid">
+    <div class="stat-item reveal">
+      <div class="stat-number" data-target="10">0</div>
+      <div class="stat-label">年專業經驗</div>
+    </div>
+    <div class="stat-item reveal" style="transition-delay:0.1s;">
+      <div class="stat-number" data-target="5000">0</div>
+      <div class="stat-label">服務客戶</div>
+    </div>
+    <div class="stat-item reveal" style="transition-delay:0.2s;">
+      <div class="stat-number" data-target="99">0</div>
+      <div class="stat-label">滿意%</div>
+    </div>
+    <div class="stat-item reveal" style="transition-delay:0.3s;">
+      <div class="stat-number" data-target="24">0</div>
+      <div class="stat-label">小時響應</div>
+    </div>
+  </div>
+</section>
+
+<!-- Features -->
+<section class="features-section" id="features">
+  <div class="features-grid">
+    <div class="features-visual reveal">💻</div>
+    <div>
+      <p class="section-label reveal">為什麼選我們</p>
+      <h2 class="section-title reveal" style="margin-bottom:1rem;">不只是維修，<br>更是 <em>信任的夥伴</em></h2>
+      <p class="reveal" style="color:var(--gray); font-size:1rem; line-height:1.8; margin-bottom:1rem;">
+        我們不只是修電腦，更是你日常運作的後盾。從個人桌機到企業網路，我們提供全方位 IT 服務。
+      </p>
+      <div class="features-list">
+        <div class="feature-item reveal">
+          <div class="feature-icon">⚡</div>
+          <div class="feature-text">
+            <h4>快速響應</h4>
+            <p>接單後24小時內回覆，緊急維修當天處理</p>
+          </div>
+        </div>
+        <div class="feature-item reveal" style="transition-delay:0.1s;">
+          <div class="feature-icon">🛡️</div>
+          <div class="feature-text">
+            <h4>品質保證</h4>
+            <p>所有維修項目提供90天保固，使用原廠配件</p>
+          </div>
+        </div>
+        <div class="feature-item reveal" style="transition-delay:0.2s;">
+          <div class="feature-icon">💰</div>
+          <div class="feature-text">
+            <h4>透明報價</h4>
+            <p>免費初檢，報價明確，沒有隱藏費用</p>
+          </div>
+        </div>
+        <div class="feature-item reveal" style="transition-delay:0.3s;">
+          <div class="feature-icon">🏢</div>
+          <div class="feature-text">
+            <h4>企業服務</h4>
+            <p>提供企業級 IT 外包方案，節省人力成本</p>
+          </div>
+        </div>
       </div>
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Inquiry Form Section -->
-  <section id="inquiry" class="bg-white py-16 px-6">
-    <div class="max-w-3xl mx-auto">
-      <h2 class="text-2xl font-bold text-center mb-8">預約維修 / 線上詢價</h2>
-      <form onsubmit="handleSubmit(event)" class="bg-gray-100 shadow-md rounded-xl p-6 space-y-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700">姓名</label>
-          <input name="name" required type="text" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300" placeholder="王小明">
+<!-- Form -->
+<section class="form-section" id="inquiry">
+  <div class="form-container">
+    <div class="section-header reveal">
+      <p class="section-label">聯絡我們</p>
+      <h2 class="section-title">預約維修 / <em>線上詢價</em></h2>
+    </div>
+    <div class="form-card reveal">
+      <form onsubmit="handleSubmit(event)">
+        <div class="form-row">
+          <div class="form-group">
+            <label>姓名</label>
+            <input name="name" required type="text" placeholder="王小明">
+          </div>
+          <div class="form-group">
+            <label>電話</label>
+            <input name="phone" required type="tel" placeholder="0912-345-678">
+          </div>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">電話</label>
-          <input name="phone" required type="tel" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300" placeholder="0912-345-678">
+        <div class="form-group">
+          <label>電子郵件</label>
+          <input name="email" required type="email" placeholder="example@email.com">
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">電子郵件</label>
-          <input name="email" required type="email" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300" placeholder="example@email.com">
-        </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">服務類型</label>
-          <select name="service" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300">
+        <div class="form-group">
+          <label>服務類型</label>
+          <select name="service">
             <option>電腦組裝服務</option>
-			<option>筆電維修</option>
+            <option>筆電維修</option>
             <option>桌機升級</option>
             <option>企業IT支援</option>
             <option>其他</option>
           </select>
         </div>
-        <div>
-          <label class="block text-sm font-medium text-gray-700">問題描述 / 備註</label>
-          <textarea name="message" class="mt-1 block w-full px-4 py-2 rounded-md border border-gray-300" rows="4" placeholder="請描述您遇到的問題或想詢問的項目..."></textarea>
+        <div class="form-group">
+          <label>問題描述 / 備註</label>
+          <textarea name="message" rows="4" placeholder="請描述您遇到的問題或想詢問的項目..."></textarea>
         </div>
-        <div class="text-center">
-          <button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-md hover:bg-blue-700 font-semibold">送出表單</button>
+        <div class="form-submit">
+          <button type="submit">送出表單</button>
         </div>
-        <p id="form-success" class="text-green-600 text-center font-semibold hidden">✅ 表單已成功送出，謝謝您的聯絡！</p>
+        <p id="form-success">✅ 表單已成功送出，謝謝您的聯絡！</p>
       </form>
     </div>
-  </section>
+  </div>
+</section>
+
+<!-- Footer -->
+<footer>
+  <div class="footer-grid">
+    <div>
+      <div class="footer-brand">QR LAB</div>
+      <p class="footer-desc">超過10年專業經驗，為你提供最快最可靠的電腦維修與 IT 支援服務。</p>
+    </div>
+    <div>
+      <h4 class="footer-col-title">服務項目</h4>
+      <ul class="footer-links">
+        <li><a href="#services">電腦維修</a></li>
+        <li><a href="#services">客製整機</a></li>
+        <li><a href="#services">網路支援</a></li>
+        <li><a href="#services">周邊銷售</a></li>
+      </ul>
+    </div>
+    <div>
+      <h4 class="footer-col-title">關於 QR LAB</h4>
+      <ul class="footer-links">
+        <li><a href="#features">為什麼選我們</a></li>
+        <li><a href="#inquiry">預約維修</a></li>
+      </ul>
+    </div>
+  </div>
+  <div class="footer-bottom">
+    <p class="footer-copy">© 2025 QR LAB. All rights reserved.</p>
+    <div class="footer-socials">
+      <a href="#">Facebook</a>
+      <a href="#">LINE</a>
+      <a href="#">Instagram</a>
+    </div>
+  </div>
+</footer>
+
+<script>
+// Loader
+window.addEventListener('load', () => {
+  setTimeout(() => document.getElementById('loader').classList.add('hidden'), 2200);
+});
+
+// Custom Cursor
+const cursor = document.getElementById('cursor');
+let mx = 0, my = 0, cx = 0, cy = 0;
+document.addEventListener('mousemove', e => { mx = e.clientX; my = e.clientY; });
+function animateCursor() {
+  cx += (mx - cx) * 0.15;
+  cy += (my - cy) * 0.15;
+  cursor.style.left = cx - 10 + 'px';
+  cursor.style.top = cy - 10 + 'px';
+  requestAnimationFrame(animateCursor);
+}
+animateCursor();
+document.querySelectorAll('a, button, .service-card, .feature-item').forEach(el => {
+  el.addEventListener('mouseenter', () => cursor.classList.add('hover'));
+  el.addEventListener('mouseleave', () => cursor.classList.remove('hover'));
+});
+
+// Particles
+const particlesEl = document.getElementById('particles');
+for (let i = 0; i < 30; i++) {
+  const p = document.createElement('div');
+  p.className = 'particle';
+  p.style.left = Math.random() * 100 + '%';
+  p.style.animationDuration = (4 + Math.random() * 6) + 's';
+  p.style.animationDelay = Math.random() * 5 + 's';
+  p.style.width = p.style.height = (2 + Math.random() * 3) + 'px';
+  particlesEl.appendChild(p);
+}
+
+// Navbar scroll
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  navbar.classList.toggle('scrolled', window.scrollY > 50);
+});
+
+// Reveal on scroll
+const reveals = document.querySelectorAll('.reveal');
+const revealObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) entry.target.classList.add('active');
+  });
+}, { threshold: 0.15 });
+reveals.forEach(el => revealObserver.observe(el));
+
+// Counter animation
+const counters = document.querySelectorAll('.stat-number');
+const counterObserver = new IntersectionObserver(entries => {
+  entries.forEach(entry => {
+    if (entry.isIntersecting) {
+      const el = entry.target;
+      const target = parseInt(el.dataset.target);
+      let current = 0;
+      const step = target / 60;
+      const timer = setInterval(() => {
+        current += step;
+        if (current >= target) { current = target; clearInterval(timer); }
+        el.textContent = Math.floor(current) + (target === 99 ? '%' : '+');
+      }, 25);
+      counterObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+counters.forEach(el => counterObserver.observe(el));
+
+// Smooth anchor scrolling
+document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+  anchor.addEventListener('click', function(e) {
+    const target = document.querySelector(this.getAttribute('href'));
+    if (target) { e.preventDefault(); target.scrollIntoView({ behavior:'smooth', block:'start' }); }
+  });
+});
+</script>
 </body>
 </html>
