@@ -532,7 +532,24 @@
       .hero-cta { flex-direction: column; align-items: center; }
     }
   /* Products / 3D viewer */
-  #products { padding: 7rem 3rem; }
+  #products { padding: 7rem 3rem; position: relative; }
+  #products::before {
+    content:''; position:absolute; inset:0; pointer-events:none; z-index:0; opacity:.55;
+    background-image:
+      radial-gradient(1.2px 1.2px at 12% 22%, rgba(255,255,255,.7) 0, transparent 60%),
+      radial-gradient(1px 1px at 35% 68%, rgba(255,255,255,.5) 0, transparent 60%),
+      radial-gradient(1.4px 1.4px at 58% 14%, rgba(255,210,120,.8) 0, transparent 60%),
+      radial-gradient(1px 1px at 74% 45%, rgba(255,255,255,.55) 0, transparent 60%),
+      radial-gradient(1.1px 1.1px at 88% 78%, rgba(255,255,255,.6) 0, transparent 60%),
+      radial-gradient(2px 2px at 22% 88%, rgba(180,160,255,.5) 0, transparent 65%),
+      radial-gradient(1px 1px at 48% 40%, rgba(255,255,255,.45) 0, transparent 60%),
+      radial-gradient(1.3px 1.3px at 92% 10%, rgba(255,255,255,.6) 0, transparent 60%),
+      radial-gradient(120px 80px at 80% 20%, rgba(80,60,160,.14) 0, transparent 70%),
+      radial-gradient(160px 100px at 15% 75%, rgba(30,80,140,.12) 0, transparent 70%);
+    animation: starDrift 42s ease-in-out infinite alternate;
+  }
+  @keyframes starDrift { from { transform: translateY(0) } to { transform: translateY(-28px) } }
+  #products > * { position: relative; z-index: 1; }
   .section-sub { color: var(--gray); font-size: 1rem; line-height: 1.8; max-width: 560px; margin: 1rem auto 0; }
   .product-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 2rem; max-width: 1200px; margin: 0 auto; }
   .product-card { background: var(--dark-gray); border: 1px solid rgba(201,169,110,0.12); border-radius: 18px; overflow: hidden; transition: border-color .4s ease, box-shadow .4s ease; }
@@ -739,7 +756,7 @@
   <div class="product-grid">
     <div class="product-card reveal">
       <div class="product-stage">
-        <model-viewer rotation="0deg 180deg 0deg"
+        <model-viewer id="mvmac" rotation="0deg 180deg 0deg"
           src="assets/MacStudio_Studio_v1.glb"
           alt="Mac Studio 客製工作站 3D 模型"
           camera-controls
@@ -770,12 +787,11 @@
     </div>
     <div class="product-card reveal">
       <div class="product-stage">
-        <model-viewer rotation="0deg 180deg 0deg"
+        <model-viewer id="mv5090" rotation="0deg 180deg 0deg" camera-orbit="-160deg 112deg auto"
           src="assets/ROG_Astral_5090_v2.glb"
           alt="ROG Astral RTX 5090 顯示卡 3D 模型"
           camera-controls
-          auto-rotate
-          rotation-per-second="18deg"
+          interpolation-decay="200"
           touch-action="pan-y"
           field-of-view="30deg"
           shadow-intensity="0.9"
@@ -784,7 +800,7 @@
           loading="eager"
           ar>
         </model-viewer>
-        <div class="product-orbit-hint">↻ 拖曳 360° 環繞</div>
+        <div class="product-orbit-hint">↻ 上下捲動看見全貌 · 拖曳自由旋轉</div>
       </div>
       <div class="product-info">
         <div class="product-tag">ROG ASTRAL RTX 5090</div>
@@ -959,6 +975,40 @@ document.querySelectorAll('a[href^="#"]').forEach(anchor => {
     if (target) { e.preventDefault(); target.scrollIntoView({ behavior:'smooth', block:'start' }); }
   });
 });
+</script>
+
+<script>
+/* 5090 scroll-driven 3D rotation (like ROG official, but real WebGL) */
+(function(){
+  var mv = document.getElementById('mv5090');
+  if(!mv || typeof ResizeObserver === 'undefined') return;
+  var section = document.getElementById('products');
+  var userGrabbed = false, released = false;
+  mv.addEventListener('interaction', function(e){
+    if(e.detail.type === 'drag-start' || e.detail.type === 'zoom-start'){ userGrabbed = true; }
+  });
+  function setOrbit(az, phi){
+    mv.cameraOrbit = az + 'deg ' + phi + 'deg auto';
+    mv.jumpCameraToGoal();
+  }
+  function upd(){
+    if(userGrabbed || released) return;
+    if(!window.matchMedia('(pointer:fine)').matches){ return; } // touch keeps plain drag
+    var r = section.getBoundingClientRect();
+    var vh = window.innerHeight;
+    var p = Math.min(1, Math.max(0, (vh - r.top) / (vh + r.height)));
+    // back -> front sweep, ending low so PCIe gold fingers catch the light
+    var az  = -160 + p * 220;
+    var phi = 112 - p * 40;
+    setOrbit(az, phi);
+  }
+  window.addEventListener('scroll', upd, {passive:true});
+  window.addEventListener('resize', upd, {passive:true});
+  var fine = window.matchMedia('(pointer:fine)').matches;
+  mv.addEventListener('load', function(){ if(fine){ mv.removeAttribute('auto-rotate'); } upd(); });
+  if(!fine){ mv.setAttribute('auto-rotate',''); mv.setAttribute('rotation-per-second','18deg'); }
+  upd();
+})();
 </script>
 </body>
 </html>

@@ -27,7 +27,7 @@ M_GOLDS   = mat("gold_screw",       (0.85, 0.63, 0.28),   1.0,  0.20)
 M_DARKMET = mat("backplate",        (0.075, 0.077, 0.082),1.0,  0.35)
 M_FINS    = mat("alu_fins",         (0.42, 0.43, 0.45),   1.0,  0.40)
 M_PCB     = mat("pcb_dark",         (0.015, 0.018, 0.016),0.0,  0.55)
-M_FINGER  = mat("pcie_gold",        (0.85, 0.60, 0.22),   1.0,  0.25)
+M_FINGER  = mat("pcie_gold",        (0.95, 0.72, 0.24),   1.0,  0.15)
 M_BLACKPL = mat("black_plastic",    (0.012, 0.012, 0.013),0.0,  0.50)
 M_FANBL   = mat("fan_blade",        (0.030, 0.032, 0.038),0.1,  0.32)
 M_BAND    = mat("brand_band",       (0.030, 0.031, 0.034),0.2,  0.45)
@@ -96,8 +96,8 @@ cut_bp.append(rft)
 
 # ---------- 2. PCB + PCIe fingers ----------
 pcb    = box("pcb", (L-0.014, 0.0035, H-0.030), (0, 0.008, (H-0.030)/2), M_PCB)
-finger = box("pcie_fingers", (0.118, 0.0045, 0.010), (-0.108, 0.008, 0.005), M_FINGER)
-notch  = box("finger_notch", (0.003, 0.02, 0.004), (-0.055, 0.008, 0.005), M_PCB)
+finger = box("pcie_fingers", (0.118, 0.007, 0.010), (0.105, 0.006, 0.005), M_FINGER)
+notch  = box("finger_notch", (0.004, 0.02, 0.012), (0.072, 0.006, 0.005), M_PCB)
 boolean(finger, notch)
 
 # ---------- 3. heatsink fin stack ----------
@@ -220,6 +220,10 @@ G = [
 for g in G:
     cut_sh.append(g)
 
+# bottom-edge exposure slot: reveals PCB edge + PCIe gold fingers (official shows PCB here)
+cut_bot = box("cut_bot", (0.316, 0.090, 0.019), (0.015, 0.035, 0.0085), M_PCB)
+cut_sh.append(cut_bot)
+
 # ---------- apply booleans ----------
 for c in cut_sh:  boolean(sh, c)
 for c in cut_bp:  boolean(bp, c)
@@ -269,7 +273,7 @@ if SHOTDIR:
     sc.render.resolution_x, sc.render.resolution_y = 1400, 900
     w = bpy.data.worlds.new("w"); sc.world = w; w.use_nodes = True
     w.node_tree.nodes["Background"].inputs[0].default_value = (0.04, 0.045, 0.055, 1)
-    for i, (az, el) in enumerate([(-40, 38), (140, 52), (-25, 8)]):
+    for i, (az, el) in enumerate([(-40, 38), (140, 52), (-25, 8), (55, -22)]):
         camo = bpy.data.objects.new("cam", bpy.data.cameras.new("cam")); sc.collection.objects.link(camo)
         r, p = math.radians(az), math.radians(el)
         # our model's "front" is +Y; azimuth measured from +Y axis toward +X
