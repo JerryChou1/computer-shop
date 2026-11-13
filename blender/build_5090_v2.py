@@ -33,7 +33,8 @@ M_BLACKPL = mat("black_plastic",    (0.012, 0.012, 0.013),0.0,  0.50)
 M_FANBL   = mat("fan_blade",        (0.030, 0.032, 0.038),0.1,  0.32)
 M_BAND    = mat("brand_band",       (0.030, 0.031, 0.034),0.2,  0.45)
 M_RGB     = mat("rgb_bar",          (0.2, 0.2, 0.6),      0.0,  0.4, emit=(0.55, 0.25, 1.0), emit_str=1.4)
-M_LOGO    = mat("rog_eyes",         (0.55, 0.56, 0.58),   0.9,  0.25, emit=(1.0, 1.0, 1.0), emit_str=0.35)
+M_LOGO    = mat("rog_eyes",         (1.00, 0.99, 0.95),   0.0,  0.20, emit=(1.0, 0.98, 0.85), emit_str=16.0)
+M_HALO5   = mat("eye_halo5",        (1.00, 0.88, 0.58),   0.0,  0.35, emit=(1.0, 0.86, 0.55), emit_str=3.6)
 M_WHITE   = mat("white_print",      (0.9, 0.9, 0.9),      0.1,  0.4, emit=(0.9, 0.9, 0.9), emit_str=0.5)
 
 def box(name, dim, loc, material, bevel=0.0):
@@ -208,7 +209,8 @@ def tail_fan():
 tail_fan()
 
 # ---------- 5c. real ROG Fearless Eye logos ----------
-add_rog_eye("c5090_front_eye", EYE_IDXS, 0.026, (0.150, T/2 + 0.004, H - 0.0012), M_LOGO, axis='flat', extrude_ratio=0.08)
+add_rog_eye("c5090_front_halo", EYE_IDXS, 0.0420, (0.150, T/2 + 0.0024, H - 0.0012), M_HALO5, axis='flat', extrude_ratio=0.05)
+add_rog_eye("c5090_front_eye", EYE_IDXS, 0.0300, (0.150, T/2 + 0.0048, H - 0.0012), M_LOGO, axis='flat', extrude_ratio=0.08)
 add_rog_eye("c5090_bp_eye",   EYE_IDXS, 0.044, (0.055, -0.0015, H/2), M_SILVER, axis='+y', extrude_ratio=0.06)
 text3d("bp_txt", "REPUBLIC OF GAMERS", 0.0080, (-0.020, -0.0015, H/2), M_SILVER)
 _tbp = bpy.data.objects["bp_txt"]; _tbp.rotation_euler = (math.pi/2, 0, 0)
@@ -256,7 +258,7 @@ for i, sz in enumerate((0.136, 0.090, 0.064, 0.014)):
         material=M_SILVER, verts=20, smooth=False)
 
 # ---------- backplate subtle logo ----------
-bplogo = box("bp_logo", (0.040, 0.0015, 0.012), (0.02, -0.0015, H/2), M_SILVER)
+
 
 # ---------- 9. Astral diagonal cut lines (tactical facets) ----------
 import mathutils as _mu
