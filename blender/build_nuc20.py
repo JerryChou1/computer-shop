@@ -65,7 +65,7 @@ def text3d(name, body, size, loc, material, extrude=0.0008, rot_top=False):
     return ob
 
 # ---------- 1. main chassis (chamfered top front edge) ----------
-body = box("nuc_body", (W, D, H-0.014), (0, 0, (H-0.014)/2 + 0.012), M_BLACK, bevel=0.006)
+body = box("nuc_body", (W, D, H-0.014), (0, 0, (H-0.014)/2 + 0.012), M_BLACK, bevel=0.0045)
 # big top-front chamfer like official (45deg cut across front top)
 cut_top = box("cut_top", (W+0.02, 0.10, 0.10), (0, D/2+0.03, H-0.005), M_INNER)
 cut_top.rotation_euler = (math.radians(-38), 0, 0)
@@ -86,8 +86,8 @@ for i in range(9):
     box(f"foot_slit{i}", (0.010, 0.003, 0.004), (-0.075 + i*0.019, D/2+0.004, 0.006), M_BLACK2)
 
 # ---------- 2b. removable vertical stand (rear wedge, tapered) ----------
-stand = box("nuc_stand", (0.062, 0.020, H-0.030), (0, -D/2-0.012, 0.012 + (H-0.030)/2), M_BLACK2, bevel=0.004)
-cst = box("cut_stand", (0.10, 0.06, 0.16), (0, -D/2-0.06, 0.02), M_INNER)
+stand = box("nuc_stand", (0.062, 0.009, H-0.030), (0, -D/2-0.006, 0.012 + (H-0.030)/2), M_BLACK2, bevel=0.0025)
+cst = box("cut_stand", (0.10, 0.06, 0.16), (0, -D/2-0.05, 0.02), M_INNER)
 cst.rotation_euler = (math.radians(30), 0, 0)
 cst.hide_render = True
 m = stand.modifiers.new("taper", 'BOOLEAN'); m.object = cst; m.operation = 'DIFFERENCE'
@@ -95,7 +95,7 @@ dg2 = bpy.context.evaluated_depsgraph_get()
 evs = stand.evaluated_get(dg2)
 news = evs.to_mesh().copy(); news.name = "nuc_stand_cut"
 stand.modifiers.clear(); stand.data = news
-box("stand_gold_line", (0.020, 0.0014, 0.0018), (0, -D/2-0.0225, 0.150), M_GOLD)
+box("stand_gold_line", (0.020, 0.0014, 0.0018), (0, -D/2-0.0118, 0.150), M_GOLD)
 
 # ---------- 3. smoked crystal-lens front panel ----------
 panel = box("smoke_panel", (W-0.012, 0.0035, H-0.052), (0, D/2 - 0.0005, 0.012 + (H-0.052)/2 + 0.008), M_SMOKE, bevel=0.001)
