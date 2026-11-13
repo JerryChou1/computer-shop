@@ -95,6 +95,47 @@ bp = box("backplate", (L-0.006, 0.004, H-0.014), (0, 0.002, H/2), M_DARKMET, bev
 rft = cyl("cut_bp_fan", RFR+0.006, 0.02, (RFX, 0.002, RFZ), rot=(math.pi/2,0,0), verts=96)
 cut_bp.append(rft)
 
+import os
+sc_ = bpy.context.scene
+# ---- ROG Fearless Eye from official SVG contours ----
+def add_rog_eye(tag, idxs, size, loc, material, axis='+y', extrude_ratio=0.06):
+    import json, mathutils
+    from mathutils.geometry import tessellate_polygon
+    from mathutils import Vector as V
+    polys = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "rog_eye_polys.json")))
+    # viewBox 375 -> map contours
+    tris_out = []
+    verts_out = []
+    idx = 0
+    for ci in idxs:
+        poly = polys[ci]
+        pts = [V(((p[0]-187.5)/375.0, -(p[1]-150.0)/375.0)) for p in poly]
+        tris = tessellate_polygon([pts])
+        if not tris: continue
+        th = size*extrude_ratio
+        base = len(verts_out)
+        for pl in pts: verts_out.append((size*pl.x, size*pl.y, 0))
+        for pl in pts: verts_out.append((size*pl.x, size*pl.y, th))
+        for a,b,c in tris:
+            bpy_ = None
+            tris_out.append((base+a, base+b, base+c))
+            tris_out.append((base+len(pts)+c, base+len(pts)+b, base+len(pts)+a))
+    me = bpy.data.meshes.new(tag + "_me")
+    me.from_pydata(verts_out, [], tris_out)
+    me.update()
+    ob = bpy.data.objects.new(tag, me)
+    sc_.collection.objects.link(ob)
+    ob.location = loc
+    # center on origin of contour space already normalized around (0,0)
+    if axis == '+y':   ob.rotation_euler = (math.pi/2, 0, 0)
+    elif axis == '-y': ob.rotation_euler = (-math.pi/2, 0, 0)
+    elif axis == '+x': ob.rotation_euler = (math.pi/2, 0, math.radians(90))
+    elif axis == '-x': ob.rotation_euler = (math.pi/2, 0, math.radians(-90))
+    ob.data.materials.append(material)
+    return ob
+EYE_IDXS = [8, 6, 7, 4, 9, 23, 24, 1, 5, 2, 3]
+
+
 # ---------- 2. PCB + PCIe fingers ----------
 pcb    = box("pcb", (L-0.014, 0.0035, H-0.030), (0, 0.008, (H-0.030)/2), M_PCB)
 finger = box("pcie_fingers", (0.118, 0.007, 0.010), (0.105, 0.006, 0.005), M_FINGER)
@@ -165,6 +206,12 @@ def tail_fan():
     rin  = cyl("tf_ring_in", RFR-0.002, 0.03, (RFX, 0.001, RFZ), rot=(math.pi/2,0,0), verts=80, smooth=False)
     boolean(ring, rin)
 tail_fan()
+
+# ---------- 5c. real ROG Fearless Eye logos ----------
+add_rog_eye("c5090_front_eye", EYE_IDXS, 0.026, (0.150, T/2 + 0.004, H - 0.0012), M_LOGO, axis='flat', extrude_ratio=0.08)
+add_rog_eye("c5090_bp_eye",   EYE_IDXS, 0.044, (0.055, -0.0015, H/2), M_SILVER, axis='+y', extrude_ratio=0.06)
+text3d("bp_txt", "REPUBLIC OF GAMERS", 0.0080, (-0.020, -0.0015, H/2), M_SILVER)
+_tbp = bpy.data.objects["bp_txt"]; _tbp.rotation_euler = (math.pi/2, 0, 0)
 
 # ---------- 6. front brand band + RGB bar (below PCB top edge) ----------
 band   = box("brand_band", (L-0.014, 0.003, 0.018), (0, T-0.0055, H-0.008), M_BAND, bevel=0.001)
