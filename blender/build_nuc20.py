@@ -26,13 +26,16 @@ def mat(name, base, metallic=0.0, rough=0.5, emit=None, emit_str=0.0, alpha=1.0,
 
 M_BLACK   = mat("rog_black",      (0.018, 0.018, 0.020), 0.35, 0.45)
 M_BLACK2  = mat("rog_black_matte",(0.010, 0.010, 0.012), 0.10, 0.70)
+M_SLATL   = mat("slat_light",   (0.085, 0.087, 0.092), 0.7,  0.35)
 M_GOLD    = mat("radiant_gold",   (0.820, 0.600, 0.230), 1.0,  0.22)
 M_GOLD_L  = mat("gold_glow",      (0.820, 0.600, 0.230), 1.0,  0.25, emit=(1.0, 0.68, 0.25), emit_str=1.4)
 M_GOLD_D  = mat("gold_dark",      (0.520, 0.380, 0.150), 1.0,  0.35)
-M_SMOKE   = mat("smoke_lens",     (0.030, 0.030, 0.038), 0.0,  0.06, alpha=0.28, trans=0.85)
+M_SMOKE   = mat("smoke_lens",     (0.012, 0.012, 0.015), 0.25, 0.08)
 M_RED     = mat("rog_red_led",    (0.55, 0.015, 0.015), 0.0, 0.3, emit=(0.8, 0.02, 0.02), emit_str=1.1)
-M_EYE     = mat("rog_eye_white",  (0.9, 0.82, 0.6), 0.0, 0.3, emit=(1.0, 0.88, 0.62), emit_str=5.0)
+M_EYE     = mat("rog_eye_white",  (1.0, 0.97, 0.82), 0.0, 0.2, emit=(1.0, 0.96, 0.78), emit_str=12.0)
+M_HALO    = mat("eye_halo",       (1.0, 0.9, 0.66), 0.0, 0.4, emit=(1.0, 0.9, 0.66), emit_str=2.2, alpha=0.12)
 M_INNER   = mat("inner_duct",     (0.020, 0.020, 0.022), 0.2, 0.6)
+M_STEEL   = mat("steel",          (0.35, 0.35, 0.37), 1.0, 0.35)
 M_USB     = mat("usb_slot",       (0.02, 0.02, 0.02), 0.8, 0.4)
 M_USBBLUE = mat("usb_blue",       (0.05, 0.15, 0.60), 0.5, 0.4)
 M_USBBLU2 = mat("usb_blue_core",  (0.02, 0.02, 0.02), 0.3, 0.5)
@@ -68,7 +71,7 @@ def text3d(name, body, size, loc, material, extrude=0.0008, rot_top=False):
 
 
 # ---- ROG Fearless Eye from official SVG contours ----
-def add_rog_eye(tag, idxs, size, loc, material, axis='+y', extrude_ratio=0.06):
+def add_rog_eye(tag, idxs, size, loc, material, axis='+y', extrude_ratio=0.06, mirror=False):
     import json, mathutils
     from mathutils.geometry import tessellate_polygon
     from mathutils import Vector as V
@@ -79,19 +82,28 @@ def add_rog_eye(tag, idxs, size, loc, material, axis='+y', extrude_ratio=0.06):
     idx = 0
     for ci in idxs:
         poly = polys[ci]
-        pts = [V(((p[0]-187.5)/375.0, -(p[1]-150.0)/375.0)) for p in poly]
+        sgx = -1.0 if mirror else 1.0
+        pts = [V((sgx*(p[0]-187.5)/375.0, -(p[1]-150.0)/375.0)) for p in poly]
         tris = tessellate_polygon([pts])
         if not tris: continue
         th = size*extrude_ratio
         base = len(verts_out)
         for pl in pts: verts_out.append((size*pl.x, size*pl.y, 0))
         for pl in pts: verts_out.append((size*pl.x, size*pl.y, th))
+        n = len(pts)
         for a,b,c in tris:
-            bpy_ = None
             tris_out.append((base+a, base+b, base+c))
-            tris_out.append((base+len(pts)+c, base+len(pts)+b, base+len(pts)+a))
+            tris_out.append((base+n+c, base+n+b, base+n+a))
+        for i in range(n):
+            j = (i+1) % n
+            tris_out.append((base+i, base+j, base+n+j))
+            tris_out.append((base+i, base+n+j, base+n+i))
     me = bpy.data.meshes.new(tag + "_me")
     me.from_pydata(verts_out, [], tris_out)
+    import bmesh as _bm
+    _b = _bm.new(); _b.from_mesh(me)
+    _bm.ops.recalc_face_normals(_b, faces=_b.faces)
+    _b.to_mesh(me); _b.free()
     me.update()
     ob = bpy.data.objects.new(tag, me)
     sc_.collection.objects.link(ob)
@@ -127,8 +139,8 @@ for i in range(9):
     box(f"foot_slit{i}", (0.010, 0.003, 0.004), (-0.075 + i*0.019, D/2+0.004, 0.006), M_BLACK2)
 
 # ---------- 2b. removable vertical stand (rear wedge, tapered) ----------
-stand = box("nuc_stand", (0.062, 0.009, H-0.030), (0, -D/2-0.006, 0.012 + (H-0.030)/2), M_BLACK2, bevel=0.0025)
-cst = box("cut_stand", (0.10, 0.06, 0.16), (0, -D/2-0.05, 0.02), M_INNER)
+stand = box("nuc_stand", (0.030, 0.009, H-0.030), (-0.052, -D/2-0.006, 0.012 + (H-0.030)/2), M_BLACK2, bevel=0.0025)
+cst = box("cut_stand", (0.06, 0.06, 0.16), (-0.052, -D/2-0.05, 0.02), M_INNER)
 cst.rotation_euler = (math.radians(30), 0, 0)
 cst.hide_render = True
 m = stand.modifiers.new("taper", 'BOOLEAN'); m.object = cst; m.operation = 'DIFFERENCE'
@@ -136,28 +148,24 @@ dg2 = bpy.context.evaluated_depsgraph_get()
 evs = stand.evaluated_get(dg2)
 news = evs.to_mesh().copy(); news.name = "nuc_stand_cut"
 stand.modifiers.clear(); stand.data = news
-# ---------- 8b. diagonal hatch openwork relief on narrow sides ----------
-hcuts = []
+# ---------- 8b. diagonal hatch relief on narrow sides (paste-on, zero holes) ----------
 for sx in (1, -1):
-    for i in range(5):
+    yb0 = -0.020 if sx > 0 else 0.010   # -x side keeps its front strip clear for the IO column
+    n = 5 if sx > 0 else 3
+    for i in range(n):
         for a in (52, -52):
-            c = box(f"hatch_{sx}_{i}_{a}", (0.008, 0.0018, 0.028),
-                    (sx * (W/2), -0.020 + i*0.010, 0.062), M_INNER)
-            c.rotation_euler = (math.radians(a), 0, 0)
-            hcuts.append(c)
-for c in hcuts:
-    mm2 = body.modifiers.new("hatch", 'BOOLEAN'); mm2.object = c; mm2.operation = 'DIFFERENCE'
-    c.hide_render = True
-dgh = bpy.context.evaluated_depsgraph_get()
-evh = body.evaluated_get(dgh)
-newh = evh.to_mesh().copy(); newh.name = "nuc_body_hatch"
-body.modifiers.clear(); body.data = newh
-for c in hcuts:
-    for col in bpy.context.scene.collection.children_recursive:
-        pass
-    c.hide_viewport = True
+            sl2 = box(f"hslat_{sx}_{i}_{a}", (0.0012, 0.008, 0.028),
+                      (sx * (W/2 + 0.0006), yb0 + i*0.010, 0.062), M_SLATL)
+            sl2.rotation_euler = (math.radians(a), 0, 0)
 
-box("stand_gold_line", (0.020, 0.0014, 0.0018), (0, -D/2-0.0118, 0.150), M_GOLD)
+# ---------- 11. top: diagonal slat relief + gold ROG lettering (paste-on, zero holes) ----------
+ztp = H - 0.0140
+for i in range(5):
+    sl = box(f"tslat_{i}", (0.050, 0.0012, 0.03), (0.040, D/2 - 0.0006 + i*0.008, ztp), M_SLATL)
+    sl.rotation_euler = (0, 0, math.radians(52))
+text3d("rog_top_txt", "R O G", 0.020, (-0.082, D/2 + 0.0004, ztp - 0.006), M_GOLD, extrude=0.0002, rot_top=True)
+
+box("stand_gold_line", (0.014, 0.0014, 0.0018), (-0.052, -D/2-0.0118, 0.150), M_GOLD)
 
 # ---------- 3. smoked crystal-lens front panel ----------
 panel = box("smoke_panel", (W-0.012, 0.0035, H-0.052), (0, D/2 - 0.0005, 0.012 + (H-0.052)/2 + 0.008), M_SMOKE, bevel=0.001)
@@ -169,23 +177,24 @@ box("gold_line_R", (0.0018, 0.0012, H-0.060), ( W/2-0.026, D/2+0.002, 0.012 + (H
 duct = box("inner_duct", (W-0.045, 0.006, H-0.085), (0, D/2-0.014, 0.020 + (H-0.085)/2), M_INNER)
 gz = 0.062
 for i, (lz, lw) in enumerate([(0.230, 0.090), (0.212, 0.050), (0.118, 0.120), (0.096, 0.075)]):
-    box(f"gold_trace{i}", (lw, 0.0012, 0.0022), (0.012 if i % 2 else -0.020, D/2-0.0088, lz), M_GOLD_L)
+    box(f"gold_trace{i}", (lw, 0.0012, 0.0022), (0.012 if i % 2 else -0.020, D/2+0.0016, lz), M_GOLD_L)
 # >> chevron marks
 for i in range(2):
-    ch = box(f"chev{i}", (0.020, 0.0012, 0.0022), (0.048, D/2-0.0088, 0.084 - i*0.010), M_GOLD_L)
+    ch = box(f"chev{i}", (0.020, 0.0012, 0.0022), (0.048, D/2+0.0016, 0.084 - i*0.010), M_GOLD_L)
     ch.rotation_euler = (0, 0, math.radians(35))
-box("gold_node0", (0.005, 0.0014, 0.005), (-0.062, D/2-0.0088, 0.150), M_GOLD_L)
-box("gold_node1", (0.005, 0.0014, 0.005), (0.070, D/2-0.0088, 0.238), M_GOLD_L)
-badge = box("gold_badge", (0.016, 0.0014, 0.016), (-0.062, D/2-0.0088, 0.224), M_GOLD_L)
+box("gold_node0", (0.005, 0.0012, 0.005), (-0.062, D/2+0.0016, 0.150), M_GOLD_L)
+box("gold_node1", (0.005, 0.0012, 0.005), (0.070, D/2+0.0016, 0.238), M_GOLD_L)
+badge = box("gold_badge", (0.016, 0.0012, 0.016), (-0.062, D/2+0.0016, 0.224), M_GOLD_L)
 # hex vent deco (dark hex + gold lattice hint)
-hexb = cyl("hex_vent", 0.026, 0.0012, (-0.00, D/2-0.0105, 0.058), rot=(math.pi/2,0,0), material=M_BLACK2, verts=6, smooth=False)
+hexb = cyl("hex_vent", 0.026, 0.0012, (-0.00, D/2+0.0014, 0.058), rot=(math.pi/2,0,0), material=M_BLACK2, verts=6, smooth=False)
 
 # ---------- 5. glowing ROG Fearless Eye (official SVG contours) ----------
 eyec_y = D/2 + 0.0020
 plate = box("eye_plate", (0.105, 0.0016, 0.078), (-0.012, D/2+0.0008, 0.170), M_BLACK2, bevel=0.004)
 text3d("emb_republic", "REPUBLIC OF GAMERS", 0.0042, (-0.0575, D/2+0.0026, 0.2035), M_GOLD)
-add_rog_eye("eye_front_base", EYE_IDXS, 0.094, (-0.012, D/2+0.0016, 0.1665), M_GOLD, axis='+y', extrude_ratio=0.03)
-add_rog_eye("eye_front", EYE_IDXS, 0.085, (-0.012, eyec_y+0.0012, 0.1690), M_EYE, axis='+y', extrude_ratio=0.06)
+add_rog_eye("eye_front_base", EYE_IDXS, 0.094, (-0.012, D/2+0.0016, 0.1665), M_GOLD, axis='+y', extrude_ratio=0.03, mirror=True)
+add_rog_eye("eye_front_glow", EYE_IDXS, 0.108, (-0.015, D/2+0.0030, 0.1675), M_HALO, axis='+y', extrude_ratio=0.012, mirror=True)
+add_rog_eye("eye_front", EYE_IDXS, 0.085, (-0.012, eyec_y+0.0012, 0.1690), M_EYE, axis='+y', extrude_ratio=0.06, mirror=True)
 
 # ---------- 6. gold ROG + REPUBLIC OF GAMERS text (top-left of panel) ----------
 text3d("nuc_rog", "R O G", 0.0155, (-0.050, D/2+0.003, 0.246), M_GOLD)
@@ -209,8 +218,8 @@ for r in range(3):
 # ---------- 8. right narrow side (56.5mm): official stack ----------
 sx0 = W/2 + 0.0016
 # top: gold Fearless Eye + red strip (per user ref photo)
-add_rog_eye("eye_side_base", EYE_IDXS, 0.034, (W/2+0.0008, -0.001, 0.257), M_BLACK2, axis='+x', extrude_ratio=0.04)
-side_eye = add_rog_eye("eye_side", EYE_IDXS, 0.030, (sx0, 0.0, 0.258), M_GOLD, axis='+x', extrude_ratio=0.09)
+add_rog_eye("eye_side_base", EYE_IDXS, 0.034, (W/2+0.0008, -0.001, 0.257), M_BLACK2, axis='+x', extrude_ratio=0.04, mirror=True)
+side_eye = add_rog_eye("eye_side", EYE_IDXS, 0.030, (sx0, 0.0, 0.258), M_GOLD, axis='+x', extrude_ratio=0.09, mirror=True)
 box("red_led_side", (0.0016, 0.020, 0.0026), (sx0, 0.0, 0.236), M_RED)
 cyl("pwr_btn", 0.0058, 0.003, (sx0, 0.0, 0.220), rot=(0, math.pi/2, 0), material=M_GOLD, verts=28, smooth=False)
 cyl("pwr_core", 0.0034, 0.004, (sx0+0.0005, 0.0, 0.220), rot=(0, math.pi/2, 0), material=M_RED, verts=24)
@@ -228,14 +237,57 @@ side_txt = bpy.data.objects["nuc_side_txt"]; side_txt.rotation_euler = (0, math.
 # ---------- 9. top face gold eye logo (flat) ----------
 ztop = H - 0.0130
 # mesh built in XY facing +z = naturally flat on the top face
-add_rog_eye("eye_top_base", EYE_IDXS, 0.056, (0, 0.0105, ztop-0.0008), M_BLACK2, axis='flat', extrude_ratio=0.03)
-add_rog_eye("eye_top", EYE_IDXS, 0.052, (0, 0.012, ztop), M_GOLD, axis='flat', extrude_ratio=0.05)
-# zero rotation keeps brow (+y) toward the front, extrude upward
+
+# (top-face eye removed: official top has vents + openwork lettering only)
+
+# ---------- 12. back panel: layered eye relief (dark patch + light thin slats), no float ----------
+yb2 = -D/2
+M_EYESHK = mat("eye_shade", (0.010, 0.010, 0.012), 0.4, 0.6)
+M_SLATL  = mat("slat_light", (0.085, 0.087, 0.092), 0.7, 0.4)
+# base clip solid (removed after)
+eye_solid = add_rog_eye("back_eye_solid", EYE_IDXS, 0.13, (0.018, yb2 - 0.012, 0.175), M_INNER, axis='-y', extrude_ratio=0.25)
+eye_solid.hide_render = True
+# layer 1: dark eye patch slightly proud of wall
+eye_patch = add_rog_eye("back_eye_patch", EYE_IDXS, 0.132, (0.018, yb2 - 0.0016, 0.175), M_EYESHK, axis='-y', extrude_ratio=0.012)
+# layer 2: light thin slats clipped to eye, proud of patch
+slat_a = math.radians(58)
+snx, snz = math.sin(slat_a), math.cos(slat_a)
+kept = 0
+for k in range(-14, 15):
+    cx, cz = 0.018 + k*0.0062*snx, 0.175 + k*0.0062*snz
+    rib = box(f"eye_slat{k}", (0.15, 0.0012, 0.0032), (cx, yb2 - 0.0022, cz), M_SLATL)
+    rib.rotation_euler = (0, slat_a, 0)
+    mi = rib.modifiers.new("eyeclip", 'BOOLEAN'); mi.object = eye_solid; mi.operation = 'INTERSECT'; mi.solver = 'FLOAT'
+    dgs = bpy.context.evaluated_depsgraph_get()
+    ms = rib.evaluated_get(dgs).to_mesh().copy(); ms.name = rib.data.name + "_clip"
+    rib.modifiers.clear(); rib.data = ms
+    if len(rib.data.polygons) == 0:
+        bpy.data.objects.remove(rib, do_unlink=True)
+    else:
+        kept += 1
+print("eye slats kept:", kept)
+# ROG openwork vent lettering on the back, below the eye
+# ROG openwork vent lettering on the back, below the eye
+text3d("vent_rog", "ROG", 0.022, (-0.008, yb2 + 0.001, 0.082), M_INNER, extrude=0.005)
+_vent = bpy.data.objects["vent_rog"]; _vent.rotation_euler = (math.pi/2, 0, 0)
+_mv = body.modifiers.new("rogvent", 'BOOLEAN'); _mv.object = _vent; _mv.operation = 'DIFFERENCE'
+_vent.hide_render = True
+dgv = bpy.context.evaluated_depsgraph_get()
+evv = body.evaluated_get(dgv)
+newv = evv.to_mesh().copy(); newv.name = "nuc_body_rogvent"
+body.modifiers.clear(); body.data = newv
+
+
+bpy.data.objects.remove(eye_solid, do_unlink=True)
 
 # ---------- export ----------
 for o in list(bpy.data.objects):
     if o.type in ('LIGHT', 'CAMERA'):
         bpy.data.objects.remove(o, do_unlink=True)
+for o in list(bpy.data.objects):
+    nm = o.name
+    if o.type == 'MESH' and (nm.startswith("tslat") or nm.startswith("rog_vent_txt") or nm.startswith("vent_rog") or nm.startswith("hatch_")):
+        bpy.data.objects.remove(o, do_unlink=True)   # boolean cutters already applied -> not geometry
 for o in list(bpy.data.objects):
     nm = o.name
     if o.type == 'MESH' and (nm.startswith("Cube") or nm.startswith("cut_")):
@@ -253,6 +305,7 @@ for o in bpy.data.objects:
             w = o.matrix_world @ mathutils.Vector(c)
             mn = mathutils.Vector(map(min, mn, w)); mx = mathutils.Vector(map(max, mx, w))
 print("bbox(cm):", tuple(round(v*100,1) for v in (mx-mn)))
+
 
 # ---------- render check shots ----------
 SHOTDIR = os.environ.get("SHOT_OUT", "")
