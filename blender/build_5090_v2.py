@@ -21,8 +21,9 @@ def mat(name, color, metallic=0.0, rough=0.5, emit=None, emit_str=0.0):
         b.inputs["Emission Strength"].default_value = emit_str
     return m
 
-M_SHROUD  = mat("shroud_gunmetal", (0.045, 0.047, 0.052), 0.35, 0.38)
+M_SHROUD  = mat("shroud_silvergrey", (0.30, 0.32, 0.35), 0.85, 0.30)
 M_SILVER  = mat("chrome",           (0.72, 0.73, 0.76),   1.0,  0.12)
+M_NICKEL  = mat("satin_nickel",     (0.52, 0.54, 0.57),   1.0,  0.38)
 M_GOLDS   = mat("gold_screw",       (0.85, 0.63, 0.28),   1.0,  0.20)
 M_DARKMET = mat("backplate",        (0.075, 0.077, 0.082),1.0,  0.35)
 M_FINS    = mat("alu_fins",         (0.42, 0.43, 0.45),   1.0,  0.40)
@@ -31,7 +32,7 @@ M_FINGER  = mat("pcie_gold",        (0.95, 0.72, 0.24),   1.0,  0.15)
 M_BLACKPL = mat("black_plastic",    (0.012, 0.012, 0.013),0.0,  0.50)
 M_FANBL   = mat("fan_blade",        (0.030, 0.032, 0.038),0.1,  0.32)
 M_BAND    = mat("brand_band",       (0.030, 0.031, 0.034),0.2,  0.45)
-M_RGB     = mat("rgb_bar",          (0.2, 0.2, 0.6),      0.0,  0.4, emit=(0.45, 0.3, 1.0), emit_str=1.4)
+M_RGB     = mat("rgb_bar",          (0.2, 0.2, 0.6),      0.0,  0.4, emit=(0.55, 0.25, 1.0), emit_str=1.4)
 M_LOGO    = mat("rog_eyes",         (0.55, 0.56, 0.58),   0.9,  0.25, emit=(1.0, 1.0, 1.0), emit_str=0.35)
 M_WHITE   = mat("white_print",      (0.9, 0.9, 0.9),      0.1,  0.4, emit=(0.9, 0.9, 0.9), emit_str=0.5)
 
@@ -121,8 +122,8 @@ cut_sh.append(cyl("cut_tf", RFR+0.010, 0.030, (RFX, 0.012, RFZ), rot=(math.pi/2,
 def fan_unit(tag, fx, fz, r, fy, nblade, hub_r, ring_thk=0.004):
     """fan facing +Y (ring sits at y=fy+blade offset); generic for front/back"""
     hub  = cyl(f"{tag}_hub", hub_r, 0.016, (fx, fy, fz), rot=(math.pi/2,0,0), material=M_BLACKPL, verts=48)
-    cap  = cyl(f"{tag}_cap", hub_r*0.72, 0.003, (fx, fy+0.0088, fz), rot=(math.pi/2,0,0), material=M_BLACKPL, verts=48)
-    dot  = cyl(f"{tag}_capdot", hub_r*0.30, 0.0045, (fx, fy+0.0092, fz), rot=(math.pi/2,0,0), material=M_LOGO, verts=32)
+    cap  = cyl(f"{tag}_cap", hub_r*0.72, 0.003, (fx, fy+0.0088, fz), rot=(math.pi/2,0,0), material=M_LOGO, verts=48)
+    dot  = cyl(f"{tag}_capdot", hub_r*0.26, 0.0040, (fx, fy+0.0092, fz), rot=(math.pi/2,0,0), material=M_BLACKPL, verts=32)
     piv = mathutils.Vector((fx, fy, fz))
     for b in range(nblade):
         ang = b * 2*math.pi/nblade
@@ -168,15 +169,15 @@ tail_fan()
 # ---------- 6. front brand band + RGB bar (below PCB top edge) ----------
 band   = box("brand_band", (L-0.014, 0.003, 0.018), (0, T-0.0055, H-0.008), M_BAND, bevel=0.001)
 rtx    = text3d("print_rtx", "GEFORCE RTX\u2122", 0.0072, (-0.095, T-0.0038, H-0.0118), M_WHITE)
-rogp   = box("rog_plate",  (0.086, 0.0025, 0.011), (0.098, T-0.0048, H-0.0085), M_SILVER)
-rogtx  = text3d("rog_plate_tx", "REPUBLIC OF GAMERS", 0.0042, (0.098, T-0.0032, H-0.0085), M_BLACKPL, extrude=0.0006)
+rogp   = box("rog_plate",  (0.086, 0.0025, 0.011), (0.098, T-0.0048, H-0.0085), M_BLACKPL)
+rogtx  = text3d("rog_plate_tx", "REPUBLIC OF GAMERS", 0.0042, (0.098, T-0.0032, H-0.0085), M_SILVER, extrude=0.0006)
 astral = text3d("print_astral", "ASTRAL", 0.009, (-0.095, 0.040, H-0.0020), M_SILVER, extrude=0.0012, rot_top=True)
 rgbbar = box("rgb_bar",    (L-0.020, 0.004, 0.005), (0, T-0.0075, H-0.0015), M_RGB)
 
 # gold accent screws on shroud front (cosmetic, official has mixed gold/silver)
 for k, (sx, sz) in enumerate([(-0.168, 0.014), (0.168, 0.014), (-0.168, H-0.0135), (0.168, H-0.0135)]):
     sc = cyl(f"screw{k}", 0.0025, 0.0018, (sx, T-0.0026, sz), rot=(math.pi/2,0,0),
-             material=(M_GOLDS if k % 3 == 0 else M_SILVER), verts=24, smooth=False)
+             material=M_SILVER, verts=24, smooth=False)
 
 # tail-end window inner light bar (visible through exhaust opening)
 endbar = box("end_bar", (0.004, 0.048, 0.007), (L/2-0.016, T/2, FANZ), M_RGB)
@@ -188,14 +189,24 @@ hdr = box("aux_header", (0.008, 0.006, 0.007), (0.147, 0.026, H-0.002), M_BLACKP
 
 # ---------- 8. dual-BIOS switch + I/O bracket ----------
 bios = box("bios_sw", (0.012, 0.005, 0.007), (-0.163, T-0.006, H-0.030), M_BLACKPL)
-bios_f = box("bios_frame", (0.015, 0.003, 0.009), (-0.163, T-0.0048, H-0.030), M_GOLDS)
-brk = box("io_bracket", (0.0035, T-0.014, H+0.004), (-L/2+0.001, T/2-0.006, H/2), M_SILVER, bevel=0.0008)
-pz = 0.030
-for i in range(4):
-    box(f"dp{i}", (0.008, 0.018, 0.0115), (-L/2-0.001, T/2-0.006, pz + i*0.022), M_BLACKPL)
-box("hdmi", (0.008, 0.016, 0.010), (-L/2-0.001, T/2-0.006, pz + 4*0.022), M_BLACKPL)
-for i in range(5):
-    box(f"vent{i}", (0.006, 0.022, 0.006), (-L/2-0.001, T/2-0.006, 0.116 + i*0.0085), M_PCB)
+bios_f = box("bios_frame", (0.015, 0.003, 0.009), (-0.163, T-0.0048, H-0.030), M_SILVER)
+brk = box("io_bracket", (0.0035, T-0.014, H+0.004), (-L/2+0.001, T/2-0.006, H/2), M_NICKEL, bevel=0.0008)
+# main column: 3xDP + 1xHDMI; staggered 2nd HDMI lower-right; 4K-ready layout per official spec
+io_y = 0.026
+for i in range(3):
+    box(f"dp{i}_shell", (0.007, 0.0185, 0.0125), (-L/2-0.0015, io_y, 0.112 - i*0.026), M_SILVER, bevel=0.0008)
+    box(f"dp{i}_cav",   (0.009, 0.0155, 0.0095), (-L/2-0.003, io_y, 0.112 - i*0.026), M_BLACKPL)
+box("hdmi1_shell", (0.007, 0.0155, 0.011), (-L/2-0.0015, io_y, 0.056), M_SILVER, bevel=0.0008)
+box("hdmi1_cav",   (0.009, 0.0125, 0.008), (-L/2-0.003, io_y, 0.056), M_BLACKPL)
+box("hdmi2_shell", (0.007, 0.0155, 0.011), (-L/2-0.0015, io_y+0.030, 0.030), M_SILVER, bevel=0.0008)
+box("hdmi2_cav",   (0.009, 0.0125, 0.008), (-L/2-0.003, io_y+0.030, 0.030), M_BLACKPL)
+# horizontal louver exhaust zone (upper bracket, per ref photo ~7 slots)
+for i in range(7):
+    box(f"louver{i}", (0.006, 0.020, 0.0022), (-L/2-0.001, 0.052, 0.108 - i*0.0068), M_PCB)
+# countersunk screws along bracket centerline
+for i, sz in enumerate((0.136, 0.090, 0.064, 0.014)):
+    cyl(f"brk_screw{i}", 0.0032, 0.0016, (-L/2-0.0015, 0.044, sz), rot=(0, math.pi/2, 0),
+        material=M_SILVER, verts=20, smooth=False)
 
 # ---------- backplate subtle logo ----------
 bplogo = box("bp_logo", (0.040, 0.0015, 0.012), (0.02, -0.0015, H/2), M_SILVER)
