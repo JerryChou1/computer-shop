@@ -30,7 +30,7 @@ M_GOLD    = mat("radiant_gold",   (0.820, 0.600, 0.230), 1.0,  0.22)
 M_GOLD_L  = mat("gold_glow",      (0.820, 0.600, 0.230), 1.0,  0.25, emit=(1.0, 0.68, 0.25), emit_str=1.4)
 M_GOLD_D  = mat("gold_dark",      (0.520, 0.380, 0.150), 1.0,  0.35)
 M_SMOKE   = mat("smoke_lens",     (0.030, 0.030, 0.038), 0.0,  0.06, alpha=0.28, trans=0.85)
-M_RED     = mat("rog_red_led",    (0.6, 0.02, 0.02), 0.0, 0.3, emit=(1.0, 0.05, 0.04), emit_str=4.5)
+M_RED     = mat("rog_red_led",    (0.55, 0.015, 0.015), 0.0, 0.3, emit=(0.8, 0.02, 0.02), emit_str=1.1)
 M_EYE     = mat("rog_eye_white",  (0.9, 0.82, 0.6), 0.0, 0.3, emit=(1.0, 0.88, 0.62), emit_str=5.0)
 M_INNER   = mat("inner_duct",     (0.020, 0.020, 0.022), 0.2, 0.6)
 M_USB     = mat("usb_slot",       (0.02, 0.02, 0.02), 0.8, 0.4)
@@ -136,6 +136,27 @@ dg2 = bpy.context.evaluated_depsgraph_get()
 evs = stand.evaluated_get(dg2)
 news = evs.to_mesh().copy(); news.name = "nuc_stand_cut"
 stand.modifiers.clear(); stand.data = news
+# ---------- 8b. diagonal hatch openwork relief on narrow sides ----------
+hcuts = []
+for sx in (1, -1):
+    for i in range(5):
+        for a in (52, -52):
+            c = box(f"hatch_{sx}_{i}_{a}", (0.008, 0.0018, 0.028),
+                    (sx * (W/2), -0.020 + i*0.010, 0.062), M_INNER)
+            c.rotation_euler = (math.radians(a), 0, 0)
+            hcuts.append(c)
+for c in hcuts:
+    mm2 = body.modifiers.new("hatch", 'BOOLEAN'); mm2.object = c; mm2.operation = 'DIFFERENCE'
+    c.hide_render = True
+dgh = bpy.context.evaluated_depsgraph_get()
+evh = body.evaluated_get(dgh)
+newh = evh.to_mesh().copy(); newh.name = "nuc_body_hatch"
+body.modifiers.clear(); body.data = newh
+for c in hcuts:
+    for col in bpy.context.scene.collection.children_recursive:
+        pass
+    c.hide_viewport = True
+
 box("stand_gold_line", (0.020, 0.0014, 0.0018), (0, -D/2-0.0118, 0.150), M_GOLD)
 
 # ---------- 3. smoked crystal-lens front panel ----------
@@ -161,7 +182,10 @@ hexb = cyl("hex_vent", 0.026, 0.0012, (-0.00, D/2-0.0105, 0.058), rot=(math.pi/2
 
 # ---------- 5. glowing ROG Fearless Eye (official SVG contours) ----------
 eyec_y = D/2 + 0.0020
-add_rog_eye("eye_front", EYE_IDXS, 0.085, (-0.004, eyec_y, 0.168), M_EYE, axis='+y', extrude_ratio=0.05)
+plate = box("eye_plate", (0.105, 0.0016, 0.078), (-0.012, D/2+0.0008, 0.170), M_BLACK2, bevel=0.004)
+text3d("emb_republic", "REPUBLIC OF GAMERS", 0.0042, (-0.0575, D/2+0.0026, 0.2035), M_GOLD)
+add_rog_eye("eye_front_base", EYE_IDXS, 0.094, (-0.012, D/2+0.0016, 0.1665), M_GOLD, axis='+y', extrude_ratio=0.03)
+add_rog_eye("eye_front", EYE_IDXS, 0.085, (-0.012, eyec_y+0.0012, 0.1690), M_EYE, axis='+y', extrude_ratio=0.06)
 
 # ---------- 6. gold ROG + REPUBLIC OF GAMERS text (top-left of panel) ----------
 text3d("nuc_rog", "R O G", 0.0155, (-0.050, D/2+0.003, 0.246), M_GOLD)
@@ -171,10 +195,22 @@ text3d("nuc_rog_sub", "REPUBLIC OF GAMERS", 0.0050, (-0.028, D/2+0.003, 0.229), 
 box("red_led_tr", (0.016, 0.0016, 0.0026), (0.058, D/2+0.0025, 0.244), M_RED)
 box("red_led_bc", (0.040, 0.0016, 0.0026), (0.007, D/2+0.0025, 0.078), M_RED)
 
+
+# ---------- 7b. official front-lower extras: 20 badge / red strip / motto / grille ----------
+badge = box("b20_frame", (0.030, 0.0016, 0.030), (0.062, D/2+0.0012, 0.088), M_GOLD, bevel=0.002)
+bp20 = box("b20_plate", (0.024, 0.0012, 0.024), (0.062, D/2+0.0022, 0.088), M_BLACK2)
+text3d("b20_txt", "20", 0.0130, (0.0515, D/2+0.0040, 0.0795), M_GOLD)
+box("red20_strip", (0.020, 0.0014, 0.0034), (0.020, D/2+0.0018, 0.0885), M_RED)
+text3d("motto_txt", "ONCE ROG, FOREVER ROG", 0.0038, (-0.070, D/2+0.0022, 0.0585), M_GOLD_L)
+for r in range(3):
+    for cidx in range(9):
+        box(f"fg_hole{r}_{cidx}", (0.0075, 0.0012, 0.0034), (-0.0735 + cidx*0.0185, D/2+0.0016, 0.0265 + r*0.0095), M_BLACK2)
+
 # ---------- 8. right narrow side (56.5mm): official stack ----------
 sx0 = W/2 + 0.0016
 # top: gold Fearless Eye + red strip (per user ref photo)
-side_eye = add_rog_eye("eye_side", EYE_IDXS, 0.030, (sx0, 0.0, 0.258), M_GOLD, axis='+x', extrude_ratio=0.08)
+add_rog_eye("eye_side_base", EYE_IDXS, 0.034, (W/2+0.0008, -0.001, 0.257), M_BLACK2, axis='+x', extrude_ratio=0.04)
+side_eye = add_rog_eye("eye_side", EYE_IDXS, 0.030, (sx0, 0.0, 0.258), M_GOLD, axis='+x', extrude_ratio=0.09)
 box("red_led_side", (0.0016, 0.020, 0.0026), (sx0, 0.0, 0.236), M_RED)
 cyl("pwr_btn", 0.0058, 0.003, (sx0, 0.0, 0.220), rot=(0, math.pi/2, 0), material=M_GOLD, verts=28, smooth=False)
 cyl("pwr_core", 0.0034, 0.004, (sx0+0.0005, 0.0, 0.220), rot=(0, math.pi/2, 0), material=M_RED, verts=24)
@@ -187,13 +223,13 @@ text3d("nuc_side_20", "20", 0.0100, (sx0+0.0012, 0.0, 0.128), M_GOLD_L)
 s20 = bpy.data.objects["nuc_side_20"]; s20.rotation_euler = (0, math.radians(90), math.radians(90))
 text3d("nuc_side_txt", "FUTURE", 0.0060, (sx0+0.0012, 0.0, 0.098), M_GOLD)
 side_txt = bpy.data.objects["nuc_side_txt"]; side_txt.rotation_euler = (0, math.radians(90), math.radians(90))
-for i in range(4):
-    box(f"side_louver{i}", (0.0022, 0.010, 0.030), (sx0, -0.014 + i*0.010, 0.042), M_BLACK2)
+
 
 # ---------- 9. top face gold eye logo (flat) ----------
 ztop = H - 0.0130
 # mesh built in XY facing +z = naturally flat on the top face
-add_rog_eye("eye_top", EYE_IDXS, 0.052, (0, 0.012, ztop), M_GOLD, axis='flat', extrude_ratio=0.04)
+add_rog_eye("eye_top_base", EYE_IDXS, 0.056, (0, 0.0105, ztop-0.0008), M_BLACK2, axis='flat', extrude_ratio=0.03)
+add_rog_eye("eye_top", EYE_IDXS, 0.052, (0, 0.012, ztop), M_GOLD, axis='flat', extrude_ratio=0.05)
 # zero rotation keeps brow (+y) toward the front, extrude upward
 
 # ---------- export ----------
